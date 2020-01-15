@@ -16,8 +16,13 @@ Change log 1 1/14/20:
 6. Separation of logic in the Logic function - tailcollision, wall collision, and change direction
 Change log 2 1/15/20:
 1. Changed variable names in logic to be more descriptive.
+2. added pause functionality with pressAKeyToStart function
+3. further segmented logic code
+4. refactored variable names throughout code in best practices format
+5. Check for array overflow in drawTailOrSpace function.
 Notes:
     1. 1/14/20 - finish draw fruit function and rename Logic variable names
+    2. 1/15/20 - comments on snake logic because I don't under stand them
 Comments:
 
 */
@@ -56,8 +61,7 @@ void Setup()
     fruitX = rand() % SCREEN_WIDTH;
     fruitY = rand() % SCREEN_HEIGHT;
     score = 0;
-}
-
+} // end set up function
 void drawTopAndBottomBorder()
 {
     for (int i = 0; i < SCREEN_WIDTH+1; i++)
@@ -66,11 +70,16 @@ void drawTopAndBottomBorder()
     }
     cout << endl;
 } // end draw top and bottom border function
-
 // Will draws tail based on length given else draws an empty space to signify nothing there
 void drawTailOrSpace(int boardHeight, int boardWidth)
 {
     bool printTail = false;
+    if(lengthTail > MAX_TAIL_LENGTH) // check for array overflow
+    {
+        cout << "ERROR! Array overflow\n";
+        gameOver = true;
+
+    }
     for (int currLength = 0; currLength < lengthTail; currLength++)
     {
         if (tailX[currLength] == boardWidth && tailY[currLength] == boardHeight)
@@ -84,7 +93,6 @@ void drawTailOrSpace(int boardHeight, int boardWidth)
         cout << " ";
     }
 } // end draw tail and space function
-
 // Part of Draw function, makes it cleaner to read.
 void drawBoard(int boardHeight, int boardWidth)
 {
@@ -109,13 +117,11 @@ void drawBoard(int boardHeight, int boardWidth)
         cout << "#";
     }
 } // end drawBoard function
-
 // To do: will draw multiple fruits or just a single one
 void drawFruit(int boardHeight, int boardWidth)
 {
 
 } // end draw fruit function
-
 void showUserScore()
 {
     cout << "Score:" << score << endl;
@@ -138,6 +144,13 @@ void Draw()
     drawTopAndBottomBorder();
     showUserScore();
 } // end Draw function
+void PressAKeyToContinue()
+  {
+  int c;
+  cout << "\nPress a key to continue...";
+  c = getch();
+  if (c == 0 || c == 224) getch();
+  }
 // keyboard input from user
 void Input()
 {
@@ -171,21 +184,16 @@ void Input()
             break;
         case 'p': // pause functionality?
         case 'P':
-            while(!_kbhit())
-            {
-
-            }
+            PressAKeyToContinue();
             break;
         }
     }
 } // end Input function
-
 // Report location of snake's head in real time
 void getXandYLocation()
 {
     cout << "x=" << snakeX << "    y=" << snakeY << endl;
 } // end getXY func
-
 // method for when snake hits a wall and comes out the other side
 void wallCollisionLogic()
 {
@@ -206,7 +214,6 @@ void wallCollisionLogic()
         snakeY = SCREEN_HEIGHT - 1;
     }
 } // end wallLogic
-
 //
 void tailCollisionLogic()
 {
@@ -218,7 +225,6 @@ void tailCollisionLogic()
         }
     }
 }
-
 // change direction of the snake's head
 void changeDirection()
 {
@@ -241,9 +247,15 @@ void changeDirection()
     }
 }
 // This method will increase the snake's length, score, and randomize apple location
-void increaseLengthAndScore()
+void increaseSnakeLengthAndScore()
 {
-
+    if (snakeX == fruitX && snakeY == fruitY)
+    {
+        score += 10;
+        fruitX = rand() % SCREEN_WIDTH;
+        fruitY = rand() % SCREEN_HEIGHT;
+        lengthTail++;
+    }
 }
 // to do: fix variable names
 void Logic()
@@ -268,19 +280,12 @@ void Logic()
     changeDirection();
     // Report location of snake's head
     getXandYLocation();
-    // collision logic for wall and tail
     wallCollisionLogic();
     tailCollisionLogic();
     // This section increases the score when the snake touches the fruit, randomizes the location of a another fruit,
     // and increases the length of the tail
-    if (snakeX == fruitX && snakeY == fruitY)
-    {
-        score += 10;
-        fruitX = rand() % SCREEN_WIDTH;
-        fruitY = rand() % SCREEN_HEIGHT;
-        lengthTail++;
-    }
-}
+    increaseSnakeLengthAndScore();
+} // end logic function
 int main()
 {
     Setup();
@@ -295,3 +300,4 @@ int main()
 
     return 0;
 }
+// end main

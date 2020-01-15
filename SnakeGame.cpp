@@ -36,8 +36,8 @@ int headX, headY, fruitX, fruitY, score;
 int tailX[100], tailY[100];
 int lengthTail;
 
-enum eDirecton { STOP = 0, LEFT, RIGHT, UP, DOWN};
-eDirecton dir;
+enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN};
+eDirection dir;
 
 void Setup()
 {
@@ -217,7 +217,7 @@ void changeDirection()
         break;
     }
 }
-
+// to do: fix variable names
 void Logic()
 {
     int prevX = tailX[0];
@@ -241,7 +241,7 @@ void Logic()
     getXandYLocation();
     wallCollisionLogic();
     tailCollisionLogic();
-    // This increases the score when the snake touches the fruit, randomizes the location of a another fruit,
+    // This section increases the score when the snake touches the fruit, randomizes the location of a another fruit,
     // and increases the length of the tail
     if (headX == fruitX && headY == fruitY)
     {

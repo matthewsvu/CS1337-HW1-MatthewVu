@@ -1,5 +1,6 @@
 /*
 Program name - ModifySnakeGame.cpp
+original program from web
     1/15/20 version 2
 
 Name - Matthew Vu
@@ -30,14 +31,14 @@ using namespace std;
 
 bool gameOver;
 
-const int WIDTH = 20;
-const int HEIGHT = 20;
+const int SCREEN_WIDTH = 20;
+const int SCREEN_HEIGHT = 20;
+const int MAX_TAIL_LENGTH = 100;
 const int NUM_FRUIT = 2;
 const int SOLID_BLOCK_ASCII = 254;
-const int SMALL_SOLID_BLOCK_ASCII = 220;
 
-int headX, headY, fruitX, fruitY, score;
-int tailX[100], tailY[100];
+int snakeX, snakeY, fruitX, fruitY, score;
+int tailX[MAX_TAIL_LENGTH], tailY[MAX_TAIL_LENGTH];
 int lengthTail;
 
 enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN};
@@ -47,18 +48,19 @@ void Setup()
 {
     gameOver = false;
     dir = STOP;
-    headX = WIDTH / 2;
-    headY = HEIGHT / 2;
+    // places the snake in the middle of the board
+    snakeX = SCREEN_WIDTH / 2;
+    snakeY = SCREEN_HEIGHT / 2;
     // randomly places a fruit on the board
-   // srand(time(0)); // changes the seed
-    fruitX = rand() % WIDTH;
-    fruitY = rand() % HEIGHT;
+    //srand(time(0)); // changes the seed for random num generator
+    fruitX = rand() % SCREEN_WIDTH;
+    fruitY = rand() % SCREEN_HEIGHT;
     score = 0;
 }
 
 void drawTopAndBottomBorder()
 {
-    for (int i = 0; i < WIDTH+1; i++)
+    for (int i = 0; i < SCREEN_WIDTH+1; i++)
     {
         cout << "#";
     }
@@ -69,9 +71,9 @@ void drawTopAndBottomBorder()
 void drawTailOrSpace(int boardHeight, int boardWidth)
 {
     bool printTail = false;
-    for (int length = 0; length < lengthTail; length++)
+    for (int currLength = 0; currLength < lengthTail; currLength++)
     {
-        if (tailX[length] == boardWidth && tailY[length] == boardHeight)
+        if (tailX[currLength] == boardWidth && tailY[currLength] == boardHeight)
         {
             cout << "o";
             printTail = true;
@@ -90,7 +92,7 @@ void drawBoard(int boardHeight, int boardWidth)
     {
         cout << "#";
     }
-    else if (boardHeight == headY && boardWidth == headX)
+    else if (boardHeight == snakeY && boardWidth == snakeX)
     {
         cout << (char)(SOLID_BLOCK_ASCII);
     }
@@ -102,7 +104,7 @@ void drawBoard(int boardHeight, int boardWidth)
     {
         drawTailOrSpace(boardHeight, boardWidth);
     }
-    if(boardWidth == WIDTH - 1) // draws when at right edge
+    if(boardWidth == SCREEN_WIDTH - 1) // draws when at right edge
     {
         cout << "#";
     }
@@ -122,11 +124,11 @@ void Draw()
     // top border
     drawTopAndBottomBorder();
 
-    for (int h = 0; h < HEIGHT; h++)
+    for (int currHeight = 0; currHeight < SCREEN_HEIGHT; currHeight++)
     {
-        for (int w = 0; w < WIDTH; w++)
+        for (int currWidth = 0; currWidth < SCREEN_WIDTH; currWidth++)
         {
-            drawBoard(h, w); // pass in current height and width to drawBoard
+            drawBoard(currHeight, currWidth); // pass in current height and width to drawBoard
         }
         cout << endl;
     }
@@ -164,27 +166,27 @@ void Input()
 // Report location of snake's head in real time
 void getXandYLocation()
 {
-    cout << "x=" << headX << "    y=" << headY << endl;
+    cout << "x=" << snakeX << "    y=" << snakeY << endl;
 }
 
 // method for when snake hits a wall and comes out the other side
 void wallCollisionLogic()
 {
-    if (headX >= WIDTH)
+    if (snakeX >= SCREEN_WIDTH)
     {
-        headX = 1;
+        snakeX = 1;
     }
-    else if (headX <= 0)
+    else if (snakeX <= 0)
     {
-        headX = WIDTH - 1;
+        snakeX = SCREEN_WIDTH - 1;
     }
-    if (headY >= HEIGHT)
+    if (snakeY >= SCREEN_HEIGHT)
     {
-        headY = 0;
+        snakeY = 0;
     }
-    else if (headY < 0)
+    else if (snakeY < 0)
     {
-        headY = HEIGHT - 1;
+        snakeY = SCREEN_HEIGHT - 1;
     }
 }
 
@@ -193,7 +195,7 @@ void tailCollisionLogic()
 {
     for (int i = 0; i < lengthTail; i++)
     {
-        if (tailX[i] == headX && tailY[i] == headY)
+        if (tailX[i] == snakeX && tailY[i] == snakeY)
         {
             gameOver = true;
         }
@@ -206,16 +208,16 @@ void changeDirection()
     switch (dir)
     {
     case LEFT:
-        headX--;
+        snakeX--;
         break;
     case RIGHT:
-        headX++;
+        snakeX++;
         break;
     case UP:
-        headY--;
+        snakeY--;
         break;
     case DOWN:
-        headY++;
+        snakeY++;
         break;
     default:
         break;
@@ -228,8 +230,8 @@ void Logic()
     int prevTailX = tailX[0];
     int prevTailY = tailY[0];
     int prev2TailX, prev2TailY;
-    tailX[0] = headX;
-    tailY[0] = headY;
+    tailX[0] = snakeX;
+    tailY[0] = snakeY;
 
     for (int i = 1; i < lengthTail; i++)
     {
@@ -240,19 +242,20 @@ void Logic()
         prevTailX = prev2TailX;
         prevTailY = prev2TailY;
     }
-
+    //
     changeDirection();
     // Report location of snake's head
     getXandYLocation();
+    // collision logic for wall and tail
     wallCollisionLogic();
     tailCollisionLogic();
     // This section increases the score when the snake touches the fruit, randomizes the location of a another fruit,
     // and increases the length of the tail
-    if (headX == fruitX && headY == fruitY)
+    if (snakeX == fruitX && snakeY == fruitY)
     {
         score += 10;
-        fruitX = rand() % WIDTH;
-        fruitY = rand() % HEIGHT;
+        fruitX = rand() % SCREEN_WIDTH;
+        fruitY = rand() % SCREEN_HEIGHT;
         lengthTail++;
     }
 }

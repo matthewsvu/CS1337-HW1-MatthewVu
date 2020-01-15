@@ -65,7 +65,7 @@ void drawTopAndBottomBorder()
         cout << "#";
     }
     cout << endl;
-}
+} // end draw top and bottom border function
 
 // Will draws tail based on length given else draws an empty space to signify nothing there
 void drawTailOrSpace(int boardHeight, int boardWidth)
@@ -83,7 +83,7 @@ void drawTailOrSpace(int boardHeight, int boardWidth)
     {
         cout << " ";
     }
-}
+} // end draw tail and space function
 
 // Part of Draw function, makes it cleaner to read.
 void drawBoard(int boardHeight, int boardWidth)
@@ -94,7 +94,7 @@ void drawBoard(int boardHeight, int boardWidth)
     }
     else if (boardHeight == snakeY && boardWidth == snakeX)
     {
-        cout << (char)(SOLID_BLOCK_ASCII);
+        cout << (char)(SOLID_BLOCK_ASCII); // draws the ascii character concatenate int to char
     }
     else if (boardHeight == fruitY && boardWidth == fruitX)
     {
@@ -108,22 +108,24 @@ void drawBoard(int boardHeight, int boardWidth)
     {
         cout << "#";
     }
-}
+} // end drawBoard function
 
 // To do: will draw multiple fruits or just a single one
 void drawFruit(int boardHeight, int boardWidth)
 {
 
-}
+} // end draw fruit function
 
+void showUserScore()
+{
+    cout << "Score:" << score << endl;
+} // end user score
 // main draw function
 void Draw()
 {
     system("cls"); //system("clear");
-
     // top border
     drawTopAndBottomBorder();
-
     for (int currHeight = 0; currHeight < SCREEN_HEIGHT; currHeight++)
     {
         for (int currWidth = 0; currWidth < SCREEN_WIDTH; currWidth++)
@@ -132,11 +134,10 @@ void Draw()
         }
         cout << endl;
     }
-
     // bottom border
     drawTopAndBottomBorder();
-    cout << "Score:" << score << endl;
-}
+    showUserScore();
+} // end Draw function
 // keyboard input from user
 void Input()
 {
@@ -145,29 +146,45 @@ void Input()
         switch (_getch())
         {
         case 'a':
+        case 'A':
             dir = LEFT;
             break;
         case 'd':
+        case 'D':
             dir = RIGHT;
             break;
         case 'w':
+        case 'W':
             dir = UP;
             break;
         case 's':
+        case 'S':
             dir = DOWN;
             break;
-        case 'x':
+        case 'q':
+        case 'Q':
             gameOver = true;
+            break;
+        case 'x':
+        case 'X':
+            gameOver = true;
+            break;
+        case 'p': // pause functionality?
+        case 'P':
+            while(!_kbhit())
+            {
+
+            }
             break;
         }
     }
-}
+} // end Input function
 
 // Report location of snake's head in real time
 void getXandYLocation()
 {
     cout << "x=" << snakeX << "    y=" << snakeY << endl;
-}
+} // end getXY func
 
 // method for when snake hits a wall and comes out the other side
 void wallCollisionLogic()
@@ -188,7 +205,7 @@ void wallCollisionLogic()
     {
         snakeY = SCREEN_HEIGHT - 1;
     }
-}
+} // end wallLogic
 
 //
 void tailCollisionLogic()
@@ -222,6 +239,11 @@ void changeDirection()
     default:
         break;
     }
+}
+// This method will increase the snake's length, score, and randomize apple location
+void increaseLengthAndScore()
+{
+
 }
 // to do: fix variable names
 void Logic()

@@ -1,6 +1,6 @@
 /*
 Program name - ModifySnakeGame.cpp
-    1/14/20 version 1
+    1/15/20 version 2
 
 Name - Matthew Vu
 Purpose - To read a piece of code written by someone else and clean it up
@@ -13,6 +13,8 @@ Change log 1 1/14/20:
 4. Added a get X and Y function to return the location of the snake's head in real time
 5. added function that draws the top and bottom border of the board.
 6. Separation of logic in the Logic function - tailcollision, wall collision, and change direction
+Change log 2 1/15/20:
+1. Changed variable names in logic to be more descriptive.
 Notes:
     1. 1/14/20 - finish draw fruit function and rename Logic variable names
 Comments:
@@ -31,6 +33,8 @@ bool gameOver;
 const int WIDTH = 20;
 const int HEIGHT = 20;
 const int NUM_FRUIT = 2;
+const int SOLID_BLOCK_ASCII = 254;
+const int SMALL_SOLID_BLOCK_ASCII = 220;
 
 int headX, headY, fruitX, fruitY, score;
 int tailX[100], tailY[100];
@@ -46,7 +50,7 @@ void Setup()
     headX = WIDTH / 2;
     headY = HEIGHT / 2;
     // randomly places a fruit on the board
-    srand(time(0)); // changes the seed
+   // srand(time(0)); // changes the seed
     fruitX = rand() % WIDTH;
     fruitY = rand() % HEIGHT;
     score = 0;
@@ -88,7 +92,7 @@ void drawBoard(int boardHeight, int boardWidth)
     }
     else if (boardHeight == headY && boardWidth == headX)
     {
-        cout << "O";
+        cout << (char)(SOLID_BLOCK_ASCII);
     }
     else if (boardHeight == fruitY && boardWidth == fruitX)
     {
@@ -220,20 +224,21 @@ void changeDirection()
 // to do: fix variable names
 void Logic()
 {
-    int prevX = tailX[0];
-    int prevY = tailY[0];
-    int prev2X, prev2Y;
+    //
+    int prevTailX = tailX[0];
+    int prevTailY = tailY[0];
+    int prev2TailX, prev2TailY;
     tailX[0] = headX;
     tailY[0] = headY;
 
     for (int i = 1; i < lengthTail; i++)
     {
-        prev2X = tailX[i];
-        prev2Y = tailY[i];
-        tailX[i] = prevX;
-        tailY[i] = prevY;
-        prevX = prev2X;
-        prevY = prev2Y;
+        prev2TailX = tailX[i];
+        prev2TailY = tailY[i];
+        tailX[i] = prevTailX;
+        tailY[i] = prevTailY;
+        prevTailX = prev2TailX;
+        prevTailY = prev2TailY;
     }
 
     changeDirection();

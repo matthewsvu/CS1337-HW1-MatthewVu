@@ -157,7 +157,7 @@ void Input()
     }
 }
 
-// Report location of snake's head
+// Report location of snake's head in real time
 void getXandYLocation()
 {
     cout << "x=" << headX << "    y=" << headY << endl;
@@ -241,6 +241,8 @@ void Logic()
     getXandYLocation();
     wallCollisionLogic();
     tailCollisionLogic();
+    // This increases the score when the snake touches the fruit, randomizes the location of a another fruit,
+    // and increases the length of the tail
     if (headX == fruitX && headY == fruitY)
     {
         score += 10;

@@ -24,7 +24,10 @@ Change log 3 1/18/20:
 1. Added drawFruit function
 2. Added code for later use in drawing multiple fruits
 3. Added randomizeFruit location function
-4.
+Change log 3 1/21/20:
+1. Completed commenting and modularization of the Logic function
+2. Made coreGameLogic function to separate it from the other functions
+
 Notes:
     1. 1/14/20 - finish draw fruit function and rename Logic variable names
     2. 1/15/20 - comments on snake logic because I don't understand them
@@ -46,15 +49,15 @@ bool gameOver;
 const int SCREEN_WIDTH = 20;
 const int SCREEN_HEIGHT = 20;
 const int MAX_TAIL_LENGTH = 100;
-const int NUM_FRUIT = 2;
+const int NUM_FRUIT = 2; // to be used when multiple fruits are on board
 const int SOLID_BLOCK_ASCII = 254;
-
+// head location, fruit location, and score
 int snakeX, snakeY, fruitX, fruitY, score;
 int tailX[MAX_TAIL_LENGTH], tailY[MAX_TAIL_LENGTH];
 int lengthTail;
 
 enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN};
-eDirection dir;
+eDirection dir; // creates a object of eDirection
 
 void Setup()
 {
@@ -64,7 +67,7 @@ void Setup()
     snakeX = SCREEN_WIDTH / 2;
     snakeY = SCREEN_HEIGHT / 2;
     // randomly places a fruit on the board
-    //srand(time(0)); // changes the seed for random num generator
+    // srand(time(0)); // changes the seed for random num generator
     fruitX = rand() % SCREEN_WIDTH;
     fruitY = rand() % SCREEN_HEIGHT;
     score = 0;
@@ -80,22 +83,21 @@ void drawTopAndBottomBorder()
 // Will draw tail based on length given else draws an empty space to signify nothing there
 void drawTailOrSpace(int boardHeight, int boardWidth)
 {
-    bool printTail = false;
+    bool printTail = false; // will be set to true if a tail exists at the x and y coordinates
     if(lengthTail > MAX_TAIL_LENGTH) // check for array overflow
     {
         cout << "ERROR! Array overflow\n";
         gameOver = true;
-
     }
     for (int currLength = 0; currLength < lengthTail; currLength++)
     {
         if (tailX[currLength] == boardWidth && tailY[currLength] == boardHeight)
         {
             cout << "o";
-            printTail = true;
+            printTail = true; // means a tail is being printed at those x y coordinates
         }
     }
-    if (!printTail)
+    if (!printTail) // draws a space instead if the tail
     {
         cout << " ";
     }
@@ -118,16 +120,17 @@ void drawBoard(int boardHeight, int boardWidth)
     {
         cout << "#";
     }
-    else if (boardHeight == snakeY && boardWidth == snakeX)
+    else if (boardHeight == snakeY && boardWidth == snakeX) // if the snake's head is at a location draw it there
     {
         cout << (char)(SOLID_BLOCK_ASCII); // draws the ascii character - concatenate int to char
     }
-    else if (boardHeight == fruitY && boardWidth == fruitX)
+    else if (boardHeight == fruitY && boardWidth == fruitX) // if the board hieg
     {
         drawFruit();
-       // if(NUM_FRUIT > 1) {  Save this for later when adding multiple fruits
-         //   randomizeFruitLocation();
-      //  }
+        // if(NUM_FRUIT > 1)
+        // {  Save this for later when adding multiple fruits
+        //   randomizeFruitLocation();
+        //  }
     }
     else
     {
@@ -161,14 +164,15 @@ void Draw()
     showUserScore();
 } // end Draw function
 void pauseGame()
-  {
-  int key;
-  cout << "\nPress a key to continue...";
-  key = getch(); // retrieves input from keyboard
-  if (key == 0 || key == 224) {
-    getch(); // starts game
-  }
-  } // end pauseGame function
+{
+    int key;
+    cout << "\nPress a key to continue...";
+    key = getch(); // retrieves input from keyboard to pause
+    if (key == 0 || key == 224)
+    {
+        getch(); // starts game
+    }
+} // end pauseGame function
 // keyboard input from user
 void Input()
 {
@@ -231,7 +235,7 @@ void wallCollisionLogic()
     {
         snakeY = SCREEN_HEIGHT - 1;
     }
-} // end wallLogic
+} // end wallCollisionLogic
 // when snake head hits tail
 void tailCollisionLogic()
 {
@@ -242,7 +246,7 @@ void tailCollisionLogic()
             gameOver = true;
         }
     }
-}
+} // end tailCollisionLogic
 // change direction of the snake's head
 void changeDirection()
 {
@@ -263,8 +267,7 @@ void changeDirection()
     default:
         break;
     }
-}
-
+} // end changeDirection function
 // This method will increase the snake's tail length, score, and randomize apple location
 void increaseSnakeLengthAndScore()
 {
@@ -274,10 +277,10 @@ void increaseSnakeLengthAndScore()
         randomizeFruitLocation();
         lengthTail++;
     }
-}
-
+} // end increaseSnakeLengthAndScore function
+// Calculates how a snake is drawn
 void coreGrowthLogic()
- {
+{
     // sets the first tail = to the first val of array
     int prevTailX = tailX[0];
     int prevTailY = tailY[0];
@@ -292,19 +295,17 @@ void coreGrowthLogic()
         // set temp value equal to current tail position
         tempTailX = tailX[i];
         tempTailY = tailY[i];
-        // replace the current tail with position of the new tail xy
+        // replace the current tail with position of the new tail's X and Y
         tailX[i] = prevTailX;
         tailY[i] = prevTailY;
         // previous tail is now the next tail value
         prevTailX = tempTailX;
         prevTailY = tempTailY;
     }
-}
-// to do: fix variable names and understand logic
+} // end coreGrowthLogic function
+// Where all game logic occurs
 void Logic()
 {
-
-
     coreGrowthLogic();
     changeDirection();
     // Report location of snake's head

@@ -275,26 +275,37 @@ void increaseSnakeLengthAndScore()
         lengthTail++;
     }
 }
+
+void coreGrowthLogic()
+ {
+    // sets the first tail = to the first val of array
+    int prevTailX = tailX[0];
+    int prevTailY = tailY[0];
+    // temp value for tail
+    int tempTailX, tempTailY;
+    // the snake head is considered the first tail
+    tailX[0] = snakeX;
+    tailY[0] = snakeY;
+    // starting from the 2nd value of the array set the
+    for (int i = 1; i < lengthTail; i++) //
+    {
+        // set temp value equal to current tail position
+        tempTailX = tailX[i];
+        tempTailY = tailY[i];
+        // replace the current tail with position of the new tail xy
+        tailX[i] = prevTailX;
+        tailY[i] = prevTailY;
+        // previous tail is now the next tail value
+        prevTailX = tempTailX;
+        prevTailY = tempTailY;
+    }
+}
 // to do: fix variable names and understand logic
 void Logic()
 {
-    //
-    int prevTailX = tailX[0];
-    int prevTailY = tailY[0];
-    int prev2TailX, prev2TailY;
-    tailX[0] = snakeX;
-    tailY[0] = snakeY;
 
-    for (int i = 1; i < lengthTail; i++) //
-    {
-        prev2TailX = tailX[i];
-        prev2TailY = tailY[i];
-        tailX[i] = prevTailX;
-        tailY[i] = prevTailY;
-        prevTailX = prev2TailX;
-        prevTailY = prev2TailY;
-    }
-    //
+
+    coreGrowthLogic();
     changeDirection();
     // Report location of snake's head
     getXandYLocation();

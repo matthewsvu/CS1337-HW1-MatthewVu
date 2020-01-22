@@ -27,7 +27,10 @@ Change log 3 1/18/20:
 Change log 3 1/21/20:
 1. Completed commenting and modularization of the Logic function
 2. Made coreGameLogic function to separate it from the other functions
-
+Change log 4 1/22/20:
+1. Added debugging functions
+2. matrix board function added
+3. instructions for game at startup added.
 Notes:
     1. 1/14/20 - finish draw fruit function and rename Logic variable names
     2. 1/15/20 - comments on snake logic because I don't understand them
@@ -39,8 +42,8 @@ I think it would be similar to the snake growth logic for some reason.
 
 #include <iostream>
 #include <conio.h>
-#include <windows.h>
-#include <ctime>
+#include <windows.h> // sleep function
+#include <ctime> // time and srand function
 
 using namespace std;
 
@@ -51,18 +54,25 @@ const int SCREEN_HEIGHT = 20;
 const int MAX_TAIL_LENGTH = 100;
 const int NUM_FRUIT = 2; // to be used when multiple fruits are on board
 const int SOLID_BLOCK_ASCII = 254;
+
 // head location, fruit location, and score
 int snakeX, snakeY, fruitX, fruitY, score;
 int tailX[MAX_TAIL_LENGTH], tailY[MAX_TAIL_LENGTH];
-int lengthTail;
+int lengthTail, sleepAmt;
 
 enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN};
 eDirection dir; // creates a object of eDirection
+// debug code, show location of programming
+void showFlow(string location) {
+    cout << "---> at location: " << location << endl;
+}
 
 void Setup()
 {
+    //showFlow("Setup")
     gameOver = false;
     dir = STOP;
+    sleepAmt = 10;
     // places the snake in the middle of the board
     snakeX = SCREEN_WIDTH / 2;
     snakeY = SCREEN_HEIGHT / 2;
@@ -74,6 +84,7 @@ void Setup()
 } // end set up function
 void drawTopAndBottomBorder()
 {
+    //showFlow("drawTopAndBottomBorder");
     for (int i = 0; i < SCREEN_WIDTH+1; i++)
     {
         cout << "#";
@@ -145,12 +156,9 @@ void showUserScore()
 {
     cout << "Score:" << score << endl;
 } // end user score
-// main draw function
-void Draw()
+// draw a matrix and then board
+void drawMatrixBoard()
 {
-    system("cls"); //system("clear");
-    // top border
-    drawTopAndBottomBorder();
     for (int currHeight = 0; currHeight < SCREEN_HEIGHT; currHeight++)
     {
         for (int currWidth = 0; currWidth < SCREEN_WIDTH; currWidth++)
@@ -159,6 +167,15 @@ void Draw()
         }
         cout << endl;
     }
+}
+// main draw function
+void Draw()
+{
+    system("cls"); //system("clear");
+    // top border
+    drawTopAndBottomBorder();
+    // setups the matrix for the board and then draws the board itself along with snake and fruit location
+    drawMatrixBoard();
     // bottom border
     drawTopAndBottomBorder();
     showUserScore();
@@ -178,34 +195,39 @@ void Input()
 {
     if (_kbhit())
     {
-        switch (_getch())
+        char userChar = tolower(_getch()); // automatically turns user inputs into lower case letters
+
+        switch (userChar)
         {
         case 'a':
-        case 'A':
             dir = LEFT;
             break;
         case 'd':
-        case 'D':
             dir = RIGHT;
             break;
         case 'w':
-        case 'W':
             dir = UP;
             break;
         case 's':
-        case 'S':
             dir = DOWN;
             break;
-        case 'q':
-        case 'Q':
-            gameOver = true;
+         case ';':
+            if(sleepAmt <= 100)
+            {
+                sleepAmt += 5;
+            }
+            break;
+        case 'l':
+            if(sleepAmt > 0)
+            {
+                sleepAmt -= 5;
+            }
             break;
         case 'x':
-        case 'X':
+        case 'q':
             gameOver = true;
             break;
         case 'p': // will stop game once p is pressed
-        case 'P':
             pauseGame();
             break;
         }
@@ -298,7 +320,7 @@ void coreGrowthLogic()
         // replace the current tail with position of the new tail's X and Y
         tailX[i] = prevTailX;
         tailY[i] = prevTailY;
-        // previous tail is now the next tail value
+        // previous tail xy is now the next tail value xy
         prevTailX = tempTailX;
         prevTailY = tempTailY;
     }
@@ -312,19 +334,35 @@ void Logic()
     getXandYLocation();
     wallCollisionLogic();
     tailCollisionLogic();
+
     // This section increases the score when the snake touches the fruit, randomizes the location of a another fruit,
     // and increases the length of the tail
     increaseSnakeLengthAndScore();
 } // end logic function
+void displayInstructions() {
+    cout << "W - MOVE UP\n"
+         << "A - MOVE LEFT\n"
+         << "S - MOVE DOWN\n"
+         << "D - MOVE RIGHT\n" << endl;
+    cout << "X or Q - QUIT GAME\n"
+         << "P - PAUSE GAME\n"
+         << "L - SPEED UP GAME\n"
+         << "; - SLOW DOWN GAME\n" << endl;
+    cout << "This is a game called Snake, when you eats fruit 'F' your snake grows longer.\n"
+         << "Eat as much as you can and grow as big as possible!\n"
+         << "Remember dying is fun!\n";
+}
 int main()
 {
+    displayInstructions();
+    pauseGame();
     Setup();
     while (!gameOver)
     {
         Draw();
         Input();
         Logic();
-        Sleep(10); //sleep(10);
+        Sleep(sleepAmt);
     }
     cout << "Game over!\n";
     cout << "Total fruits eaten: " << lengthTail << endl;

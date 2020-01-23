@@ -137,12 +137,13 @@ void randomizeFruitLocation(int &instanceFruitY, int &instanceFruitX)
 {
     //showFlow("randomizeFruitLocation");
     // will change location of either 1st or 2nd fruit depending on what is passed in
-    do {
-    instanceFruitX = rand() % SCREEN_WIDTH;
-    instanceFruitY = rand() % SCREEN_HEIGHT;
+    do
+    {
+        instanceFruitX = rand() % SCREEN_WIDTH;
+        instanceFruitY = rand() % SCREEN_HEIGHT;
     } // make sure that the fruit does not get placed within the leftmost edge
     while(fruit2ndX == fruitX && fruit2ndY == fruitY || (fruitX == 0 || fruit2ndX == 0)) // make sures the fruit does not get put in the same place
-    ;
+        ;
 } // end randomizeFruit function
 void drawFruit()
 {
@@ -367,7 +368,7 @@ void coreGrowthLogic()
 // call this function if you want to die by a wall.
 void deathByWall()
 {
-    if(snakeX >= SCREEN_WIDTH || snakeX <= 0 || snakeY >= SCREEN_HEIGHT || snakeY <= 0)
+    if(snakeX >= SCREEN_WIDTH || snakeX <= 0 || snakeY >= SCREEN_HEIGHT || snakeY < 0)
     {
         gameOver = true;
     }
@@ -380,8 +381,9 @@ void Logic()
     changeDirection();
     // Report location of snake's head
     getXandYLocation();
-    if(hardMode == false) {
-      wallCollisionLogic();
+    if(hardMode == false)   // when hard mode is not on, go by the normal games rules, else do hard mode rules
+    {
+        wallCollisionLogic();
     }
     else
     {
@@ -396,7 +398,6 @@ void Logic()
 void startGame()
 {
     //showFlow("StartGame");
-
     Setup();
     while (!gameOver)
     {
@@ -412,13 +413,13 @@ void startGame()
 } // end  startGame function
 void restartGame()
 {
-    char restartKey;
-    cout << "Do you want to restart? Type 'y' for yes, 'h' for restarting in hardmode,\n 'n' or any other key for no. Press enter to submit the input" << endl;
+    char restartKey; // when user is prompted for y, h, or n
+    cout << "Do you want to restart? Type 'y' for YES, 'h' for restarting in HARDMODE,\n 'n' or any other key for NO. Press ENTER to submit the input" << endl;
     cin >> restartKey;
     switch(restartKey)
     {
     case 'y':
-        hardMode = false;
+        hardMode = false; // resets hardmode in case it was already in hardmode
         startGame();
         break;
     case 'h':
@@ -449,11 +450,6 @@ void displayInstructions()
          << "Try to eat as much as you can and grow as big as possible without touching your own tail!\n"
          << "Remember dying is fun!\n";
 }   // end displayInstructions function
-// to do: I've made txt file called 'highscores.txt' make a output file that writes to that
-void displayHighScores()
-{
-
-}
 int main()
 {
     displayInstructions();

@@ -1,7 +1,7 @@
 /*
 Program name - ModifySnakeGame.cpp
 original program from web
-    1/15/20 version 2
+    1/22/20 version 5
 
 Name - Matthew Vu
 Purpose - To read a piece of code written by someone else and clean it up
@@ -31,12 +31,22 @@ Change log 4 1/22/20:
 1. Added debugging functions
 2. matrix board function added
 3. instructions for game at startup added.
+4. startGame function added
+5. deathByWall function added, need to implement as option later
+6  added more comments to various function for clarity.
+7. Finished drawing multiple fruits functionality.
+8. added hardmode and death by wall
+9. fixed bug where fruit gets stuck inside a wall
+10. added restart game function and initialized it at the top of the program.
+
 Notes:
     1. 1/14/20 - finish draw fruit function and rename Logic variable names
     2. 1/15/20 - comments on snake logic because I don't understand them
+    3. 1/22/20 - make start game function and a restart function together
 Comments:
 How would I add a way to have multiple fruits on one board that are fully interactable with the snake head?
 I think it would be similar to the snake growth logic for some reason.
+A lot of this debugging is tedious.
 
 */
 
@@ -47,26 +57,31 @@ I think it would be similar to the snake growth logic for some reason.
 
 using namespace std;
 
-bool gameOver;
+void restartGame(); // initiate restartGame function here
+
+bool gameOver, hardMode = false;
 
 const int SCREEN_WIDTH = 20;
 const int SCREEN_HEIGHT = 20;
 const int MAX_TAIL_LENGTH = 100;
 const int NUM_FRUIT = 2; // to be used when multiple fruits are on board
 const int SOLID_BLOCK_ASCII = 254;
+const int SLEEP_MAX_AMT = 100;
+const int SLEEP_INCREMENT_AMT = 5;
 
 // head location, fruit location, and score
-int snakeX, snakeY, fruitX, fruitY, score;
+int snakeX, snakeY, fruitX, fruitY, fruit2ndX, fruit2ndY, score;
 int tailX[MAX_TAIL_LENGTH], tailY[MAX_TAIL_LENGTH];
 int lengthTail, sleepAmt;
 
 enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN};
 eDirection dir; // creates a object of eDirection
 // debug code, show location of programming
-void showFlow(string location) {
+void showFlow(string location)
+{
     cout << "---> at location: " << location << endl;
 }
-
+// initiates the game variables
 void Setup()
 {
     //showFlow("Setup")
@@ -76,10 +91,13 @@ void Setup()
     // places the snake in the middle of the board
     snakeX = SCREEN_WIDTH / 2;
     snakeY = SCREEN_HEIGHT / 2;
+    lengthTail = 0;
     // randomly places a fruit on the board
-    // srand(time(0)); // changes the seed for random num generator
+    srand(time(0)); // changes the seed for random num generator
     fruitX = rand() % SCREEN_WIDTH;
     fruitY = rand() % SCREEN_HEIGHT;
+    fruit2ndX = rand() % SCREEN_WIDTH;
+    fruit2ndY = rand() % SCREEN_HEIGHT;
     score = 0;
 } // end set up function
 void drawTopAndBottomBorder()
@@ -94,6 +112,7 @@ void drawTopAndBottomBorder()
 // Will draw tail based on length given else draws an empty space to signify nothing there
 void drawTailOrSpace(int boardHeight, int boardWidth)
 {
+    //showFlow("drawTailOrSpace");
     bool printTail = false; // will be set to true if a tail exists at the x and y coordinates
     if(lengthTail > MAX_TAIL_LENGTH) // check for array overflow
     {
@@ -102,7 +121,7 @@ void drawTailOrSpace(int boardHeight, int boardWidth)
     }
     for (int currLength = 0; currLength < lengthTail; currLength++)
     {
-        if (tailX[currLength] == boardWidth && tailY[currLength] == boardHeight)
+        if (tailX[currLength] == boardWidth && tailY[currLength] == boardHeight) // if the current array value is at the xy location on the board print it out
         {
             cout << "o";
             printTail = true; // means a tail is being printed at those x y coordinates
@@ -113,13 +132,18 @@ void drawTailOrSpace(int boardHeight, int boardWidth)
         cout << " ";
     }
 } // end draw tail and space function
-// places fruit anywhere within the screen width and height
-void randomizeFruitLocation()
+// places fruit anywhere within the screen width and height, reference the real fruit xy vals
+void randomizeFruitLocation(int &instanceFruitY, int &instanceFruitX)
 {
-    fruitX = rand() % SCREEN_WIDTH;
-    fruitY = rand() % SCREEN_HEIGHT;
+    //showFlow("randomizeFruitLocation");
+    // will change location of either 1st or 2nd fruit depending on what is passed in
+    do {
+    instanceFruitX = rand() % SCREEN_WIDTH;
+    instanceFruitY = rand() % SCREEN_HEIGHT;
+    } // make sure that the fruit does not get placed within the leftmost edge
+    while(fruit2ndX == fruitX && fruit2ndY == fruitY || (fruitX == 0 || fruit2ndX == 0)) // make sures the fruit does not get put in the same place
+    ;
 } // end randomizeFruit function
-// To do: will draw multiple fruits or just a single one
 void drawFruit()
 {
     cout << "F";
@@ -127,6 +151,7 @@ void drawFruit()
 // Part of Draw function, makes it cleaner to read.
 void drawBoard(int boardHeight, int boardWidth)
 {
+    //showFlow("drawBoard");
     if (boardWidth == 0) // draws border when at the left edge
     {
         cout << "#";
@@ -135,13 +160,9 @@ void drawBoard(int boardHeight, int boardWidth)
     {
         cout << (char)(SOLID_BLOCK_ASCII); // draws the ascii character - concatenate int to char
     }
-    else if (boardHeight == fruitY && boardWidth == fruitX) // if the board hieg
+    else if (boardHeight == fruitY && boardWidth == fruitX || boardHeight == fruit2ndY && boardWidth == fruit2ndX ) // if the board height is the same as the locations of the fruits
     {
         drawFruit();
-        // if(NUM_FRUIT > 1)
-        // {  Save this for later when adding multiple fruits
-        //   randomizeFruitLocation();
-        //  }
     }
     else
     {
@@ -156,9 +177,10 @@ void showUserScore()
 {
     cout << "Score:" << score << endl;
 } // end user score
-// draw a matrix and then board
+// draw a matrix and then the board itself
 void drawMatrixBoard()
 {
+    //showFlow("drawMatrixBoard");
     for (int currHeight = 0; currHeight < SCREEN_HEIGHT; currHeight++)
     {
         for (int currWidth = 0; currWidth < SCREEN_WIDTH; currWidth++)
@@ -171,6 +193,7 @@ void drawMatrixBoard()
 // main draw function
 void Draw()
 {
+    //showFlow("Draw");
     system("cls"); //system("clear");
     // top border
     drawTopAndBottomBorder();
@@ -182,6 +205,7 @@ void Draw()
 } // end Draw function
 void pauseGame()
 {
+    //showFlow("pauseGame");
     int key;
     cout << "\nPress a key to continue...";
     key = getch(); // retrieves input from keyboard to pause
@@ -193,10 +217,10 @@ void pauseGame()
 // keyboard input from user
 void Input()
 {
+    //showFlow("Input");
     if (_kbhit())
     {
         char userChar = tolower(_getch()); // automatically turns user inputs into lower case letters
-
         switch (userChar)
         {
         case 'a':
@@ -211,16 +235,16 @@ void Input()
         case 's':
             dir = DOWN;
             break;
-         case ';':
-            if(sleepAmt <= 100)
+        case ';':
+            if(sleepAmt <= SLEEP_MAX_AMT)
             {
-                sleepAmt += 5;
+                sleepAmt += SLEEP_INCREMENT_AMT;
             }
             break;
         case 'l':
             if(sleepAmt > 0)
             {
-                sleepAmt -= 5;
+                sleepAmt -= SLEEP_INCREMENT_AMT;
             }
             break;
         case 'x':
@@ -233,25 +257,29 @@ void Input()
         }
     }
 } // end Input function
-// Report location of snake's head in real time
+// Report location of snake's head and fruits in real time
 void getXandYLocation()
 {
     cout << "x=" << snakeX << "    y=" << snakeY << endl;
-} // end getXY func
+    cout << "1st fruit x=" << fruitX << "     y=" << fruitY << endl;
+    cout << "2nd fruit x=" << fruit2ndX << "     y=" << fruit2ndY << endl;
+
+} // end getXYfunc
 // method for when snake hits a wall and comes out the other side
 void wallCollisionLogic()
 {
-    if (snakeX >= SCREEN_WIDTH)
+    // showFlow("wallCollisionLogic");
+    if (snakeX >= SCREEN_WIDTH) // when it hits the rightmost wall
     {
-        snakeX = 1;
+        snakeX = 1; // location just to the right of the left most wall
     }
-    else if (snakeX <= 0)
+    else if (snakeX <= 0) // when it hits the leftmost wall
     {
         snakeX = SCREEN_WIDTH - 1;
     }
-    if (snakeY >= SCREEN_HEIGHT)
+    if (snakeY >= SCREEN_HEIGHT) // when it is at the upper most edge
     {
-        snakeY = 0;
+        snakeY = 0; // set snake head back to the bottom
     }
     else if (snakeY < 0)
     {
@@ -261,6 +289,7 @@ void wallCollisionLogic()
 // when snake head hits tail
 void tailCollisionLogic()
 {
+    //showFlow("tailCollisionLogic");
     for (int i = 0; i < lengthTail; i++)
     {
         if (tailX[i] == snakeX && tailY[i] == snakeY) // xy values of tail are the same as the head xy values
@@ -272,6 +301,7 @@ void tailCollisionLogic()
 // change direction of the snake's head
 void changeDirection()
 {
+    //showFlow("changeDirection");
     switch (dir)
     {
     case LEFT:
@@ -293,16 +323,25 @@ void changeDirection()
 // This method will increase the snake's tail length, score, and randomize apple location
 void increaseSnakeLengthAndScore()
 {
-    if (snakeX == fruitX && snakeY == fruitY)
+    // showFlow("increaseSnakeLengthAndScore");
+    if (snakeX == fruitX && snakeY == fruitY || snakeX == fruit2ndX && snakeY == fruit2ndY) // IF the snake eats the 1st or 2nd fruit
     {
-        score += 10;
-        randomizeFruitLocation();
-        lengthTail++;
+        score += 10; // score increases
+        if(snakeX == fruitX && snakeY == fruitY) // when it eats the first fruit, randomize a new location for the fruit
+        {
+            randomizeFruitLocation(fruitY, fruitX);
+        }
+        else if(snakeX == fruit2ndX && snakeY == fruit2ndY) // 2nd fruit randomizer
+        {
+            randomizeFruitLocation(fruit2ndY, fruit2ndX);
+        }
+        lengthTail++; // increment the length of the tail after randomizing the fruit
     }
 } // end increaseSnakeLengthAndScore function
 // Calculates how a snake is drawn
 void coreGrowthLogic()
 {
+    // showFlow("coreGrowthLogic");
     // sets the first tail = to the first val of array
     int prevTailX = tailX[0];
     int prevTailY = tailY[0];
@@ -325,37 +364,39 @@ void coreGrowthLogic()
         prevTailY = tempTailY;
     }
 } // end coreGrowthLogic function
+// call this function if you want to die by a wall.
+void deathByWall()
+{
+    if(snakeX >= SCREEN_WIDTH || snakeX <= 0 || snakeY >= SCREEN_HEIGHT || snakeY <= 0)
+    {
+        gameOver = true;
+    }
+} // end deathByWall
 // Where all game logic occurs
 void Logic()
 {
+    // showflow("Logic");
     coreGrowthLogic();
     changeDirection();
     // Report location of snake's head
     getXandYLocation();
-    wallCollisionLogic();
+    if(hardMode == false) {
+      wallCollisionLogic();
+    }
+    else
+    {
+        deathByWall();
+    }
     tailCollisionLogic();
-
     // This section increases the score when the snake touches the fruit, randomizes the location of a another fruit,
     // and increases the length of the tail
     increaseSnakeLengthAndScore();
 } // end logic function
-void displayInstructions() {
-    cout << "W - MOVE UP\n"
-         << "A - MOVE LEFT\n"
-         << "S - MOVE DOWN\n"
-         << "D - MOVE RIGHT\n" << endl;
-    cout << "X or Q - QUIT GAME\n"
-         << "P - PAUSE GAME\n"
-         << "L - SPEED UP GAME\n"
-         << "; - SLOW DOWN GAME\n" << endl;
-    cout << "This is a game called Snake, when you eats fruit 'F' your snake grows longer.\n"
-         << "Eat as much as you can and grow as big as possible!\n"
-         << "Remember dying is fun!\n";
-}
-int main()
+//
+void startGame()
 {
-    displayInstructions();
-    pauseGame();
+    //showFlow("StartGame");
+
     Setup();
     while (!gameOver)
     {
@@ -365,7 +406,60 @@ int main()
         Sleep(sleepAmt);
     }
     cout << "Game over!\n";
-    cout << "Total fruits eaten: " << lengthTail << endl;
+    cout << "Total fruits eaten: " << lengthTail << endl << endl;
+    restartGame();
+
+} // end  startGame function
+void restartGame()
+{
+    char restartKey;
+    cout << "Do you want to restart? Type 'y' for yes, 'h' for restarting in hardmode,\n 'n' or any other key for no. Press enter to submit the input" << endl;
+    cin >> restartKey;
+    switch(restartKey)
+    {
+    case 'y':
+        hardMode = false;
+        startGame();
+        break;
+    case 'h':
+        hardMode = true;
+        startGame();
+        break;
+    default:
+        exit(0);
+        break;
+    }
+} // end restartGame func
+void displayInstructions()
+{
+    // showFlow("displayInstruction");
+    cout << "Controls:\n"
+         << "---------\n";
+    cout << "W - MOVE UP\n"
+         << "A - MOVE LEFT\n"
+         << "S - MOVE DOWN\n"
+         << "D - MOVE RIGHT\n"
+         <<"---------\n"
+         << "X or Q - QUIT GAME\n"
+         << "P - PAUSE GAME\n"
+         << "L - SPEED UP GAME\n"
+         << "; - SLOW DOWN GAME\n\n"
+         << "Description:\n"
+         << "This is a game called Snake, when you eat fruits that look like --> 'F' your snake grows longer.\n"
+         << "Try to eat as much as you can and grow as big as possible without touching your own tail!\n"
+         << "Remember dying is fun!\n";
+}   // end displayInstructions function
+// to do: I've made txt file called 'highscores.txt' make a output file that writes to that
+void displayHighScores()
+{
+
+}
+int main()
+{
+    displayInstructions();
+    pauseGame();
+    startGame();
+
     return 0;
 }
 // end main

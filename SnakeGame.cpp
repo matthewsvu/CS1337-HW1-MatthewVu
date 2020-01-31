@@ -142,7 +142,8 @@ void randomizeFruitLocation(int &instanceFruitY, int &instanceFruitX)
         instanceFruitX = rand() % SCREEN_WIDTH;
         instanceFruitY = rand() % SCREEN_HEIGHT;
     } // make sure that the fruit does not get placed within the leftmost edge
-    while(fruit2ndX == fruitX && fruit2ndY == fruitY || (fruitX == 0 || fruit2ndX == 0)) // make sures the fruit does not get put in the same place
+    while(fruit2ndX == fruitX && fruit2ndY == fruitY || (fruitX == 0 || fruit2ndX == 0)
+           || (fruitY == 0 || fruit2ndY == 0))  // make sures the fruit does not get put in the same place
         ;
 } // end randomizeFruit function
 void drawFruit()
@@ -190,7 +191,7 @@ void drawMatrixBoard()
         }
         cout << endl;
     }
-}
+} // end drawMatrixBoard function
 // main draw function
 void Draw()
 {
@@ -209,7 +210,7 @@ void pauseGame()
     //showFlow("pauseGame");
     int key;
     cout << "\nPress a key to continue...";
-    key = getch(); // retrieves input from keyboard to pause
+    key = getch(); // retrieves input char from keyboard to pause
     if (key == 0 || key == 224)
     {
         getch(); // starts game
@@ -291,9 +292,9 @@ void wallCollisionLogic()
 void tailCollisionLogic()
 {
     //showFlow("tailCollisionLogic");
-    for (int i = 0; i < lengthTail; i++)
+    for (int currLocation = 0; currLocation < lengthTail; currLocation++)
     {
-        if (tailX[i] == snakeX && tailY[i] == snakeY) // xy values of tail are the same as the head xy values
+        if (tailX[currLocation] == snakeX && tailY[currLocation] == snakeY) // xy values of tail are the same as the head xy values
         {
             gameOver = true;
         }
@@ -427,7 +428,7 @@ void restartGame()
         startGame();
         break;
     default:
-        exit(0);
+        exit(true);
         break;
     }
 } // end restartGame func

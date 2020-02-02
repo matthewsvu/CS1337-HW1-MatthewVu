@@ -38,7 +38,12 @@ Change log 4 1/22/20:
 8. added hardmode and death by wall
 9. fixed bug where fruit gets stuck inside a wall
 10. added restart game function and initialized it at the top of the program.
-
+Change log 5:
+1. Renamed variables
+2. Added small functions that printed characters, to the draw functions
+3. Renamed for loop variables in the main game logic function
+4. Added drawCurrentModefunction that draws what mode the user is depending whether boolean hardmode is true or false
+5. Changed the restartKey input from the user to lowercase incase the input a upper case letter
 Notes:
     1. 1/14/20 - finish draw fruit function and rename Logic variable names
     2. 1/15/20 - comments on snake logic because I don't understand them
@@ -51,7 +56,7 @@ A lot of this debugging is tedious.
 */
 
 #include <iostream>
-#include <conio.h>
+#include <conio.h> // getch function
 #include <windows.h> // sleep function
 #include <ctime> // time and srand function
 
@@ -68,6 +73,7 @@ const int NUM_FRUIT = 2; // to be used when multiple fruits are on board
 const int SOLID_BLOCK_ASCII = 254;
 const int SLEEP_MAX_AMT = 100;
 const int SLEEP_INCREMENT_AMT = 5;
+const int SCORE_INCREMENT = 10;
 
 // head location, fruit location, and score
 int snakeX, snakeY, fruitX, fruitY, fruit2ndX, fruit2ndY, score;
@@ -86,7 +92,7 @@ void Setup()
 {
     //showFlow("Setup")
     gameOver = false;
-    dir = STOP;
+    dir = STOP; // Stops snake from moving in previous iteration of game
     sleepAmt = 10;
     // places the snake in the middle of the board
     snakeX = SCREEN_WIDTH / 2;
@@ -142,27 +148,41 @@ void randomizeFruitLocation(int &instanceFruitY, int &instanceFruitX)
         instanceFruitX = rand() % SCREEN_WIDTH;
         instanceFruitY = rand() % SCREEN_HEIGHT;
     } // make sure that the fruit does not get placed within the leftmost edge
-    while(fruit2ndX == fruitX && fruit2ndY == fruitY || (fruitX == 0 || fruit2ndX == 0)
-           || (fruitY == 0 || fruit2ndY == 0))  // make sures the fruit does not get put in the same place
-        ;
+    while(fruit2ndX == fruitX && fruit2ndY == fruitY || (fruitX == 0 || fruit2ndX == 0) // make sure the fruits don't get put in the same place
+          || (fruitX == 20 || fruit2ndX == 20)); // Also randomizes again if they are inside the board edges
+
 } // end randomizeFruit function
 void drawFruit()
 {
     cout << "F";
 } // end draw fruit function
+void drawLeftOrRightEdge()
+{
+     cout << "#";
+} // end drawLeftOrRightEdge func
+// Draws an solid block for the snake's head
+void drawAsciiSnakeHead()
+{
+     cout << (char)(SOLID_BLOCK_ASCII); // draws the ascii character - concatenate int to char
+} // end drawAsciiSnake head func
+void drawCurrentMode()
+{
+    cout << (hardMode ? "Hard Mode activated!" : "Normal Mode") << endl; // when hard mode is activated print it out else normal mode
+} // end drawHardModeOn func
 // Part of Draw function, makes it cleaner to read.
 void drawBoard(int boardHeight, int boardWidth)
 {
     //showFlow("drawBoard");
     if (boardWidth == 0) // draws border when at the left edge
     {
-        cout << "#";
+       drawLeftOrRightEdge();
     }
     else if (boardHeight == snakeY && boardWidth == snakeX) // if the snake's head is at a location draw it there
     {
-        cout << (char)(SOLID_BLOCK_ASCII); // draws the ascii character - concatenate int to char
+       drawAsciiSnakeHead();
     }
-    else if (boardHeight == fruitY && boardWidth == fruitX || boardHeight == fruit2ndY && boardWidth == fruit2ndX ) // if the board height is the same as the locations of the fruits
+    else if (boardHeight == fruitY && boardWidth == fruitX ||
+            boardHeight == fruit2ndY && boardWidth == fruit2ndX) // if the board height is the same as the locations of the fruits
     {
         drawFruit();
     }
@@ -172,7 +192,7 @@ void drawBoard(int boardHeight, int boardWidth)
     }
     if(boardWidth == SCREEN_WIDTH - 1) // draws border when at right edge
     {
-        cout << "#";
+        drawLeftOrRightEdge();
     }
 } // end drawBoard function
 void showUserScore()
@@ -203,6 +223,8 @@ void Draw()
     drawMatrixBoard();
     // bottom border
     drawTopAndBottomBorder();
+    // activates what mode the user is on to let user know what mode they're playing in
+    drawCurrentMode();
     showUserScore();
 } // end Draw function
 void pauseGame()
@@ -238,18 +260,18 @@ void Input()
             dir = DOWN;
             break;
         case ';':
-            if(sleepAmt <= SLEEP_MAX_AMT)
+            if(sleepAmt <= SLEEP_MAX_AMT) // checks for when the sleepAmt goes over a limit
             {
                 sleepAmt += SLEEP_INCREMENT_AMT;
             }
             break;
         case 'l':
-            if(sleepAmt > 0)
+            if(sleepAmt > 0) // check for when the sleepAmt goes under a certain limit
             {
                 sleepAmt -= SLEEP_INCREMENT_AMT;
             }
             break;
-        case 'x':
+        case 'x': // exit game
         case 'q':
             gameOver = true;
             break;
@@ -264,7 +286,7 @@ void getXandYLocation()
 {
     cout << "x=" << snakeX << "    y=" << snakeY << endl;
     cout << "1st fruit x=" << fruitX << "     y=" << fruitY << endl;
-    cout << "2nd fruit x=" << fruit2ndX << "     y=" << fruit2ndY << endl;
+    cout << "2nd fruit x=" << fruit2ndX << "     y=" << fruit2ndY << endl << endl;
 
 } // end getXYfunc
 // method for when snake hits a wall and comes out the other side
@@ -328,7 +350,7 @@ void increaseSnakeLengthAndScore()
     // showFlow("increaseSnakeLengthAndScore");
     if (snakeX == fruitX && snakeY == fruitY || snakeX == fruit2ndX && snakeY == fruit2ndY) // IF the snake eats the 1st or 2nd fruit
     {
-        score += 10; // score increases
+        score += SCORE_INCREMENT; // score increases
         if(snakeX == fruitX && snakeY == fruitY) // when it eats the first fruit, randomize a new location for the fruit
         {
             randomizeFruitLocation(fruitY, fruitX);
@@ -353,14 +375,14 @@ void coreGrowthLogic()
     tailX[0] = snakeX;
     tailY[0] = snakeY;
     // starting from the 2nd value of the array set the
-    for (int i = 1; i < lengthTail; i++) //
+    for (int currTailLength = 1; currTailLength < lengthTail; currTailLength++) //
     {
         // set temp value equal to current tail position
-        tempTailX = tailX[i];
-        tempTailY = tailY[i];
+        tempTailX = tailX[currTailLength];
+        tempTailY = tailY[currTailLength];
         // replace the current tail with position of the new tail's X and Y
-        tailX[i] = prevTailX;
-        tailY[i] = prevTailY;
+        tailX[currTailLength] = prevTailX;
+        tailY[currTailLength] = prevTailY;
         // previous tail xy is now the next tail value xy
         prevTailX = tempTailX;
         prevTailY = tempTailY;
@@ -415,19 +437,19 @@ void startGame()
 void restartGame()
 {
     char restartKey; // when user is prompted for y, h, or n
-    cout << "Do you want to restart? Type 'y' for YES, 'h' for restarting in HARDMODE,\n 'n' or any other key for NO. Press ENTER to submit the input" << endl;
+    cout << "Do you want to restart?\n\nType 'y' for YES\nType 'h' for restarting in HARDMODE\nType 'n' or any other key for NO\nPress ENTER to submit the input" << endl;
     cin >> restartKey;
-    switch(restartKey)
+    switch(tolower(restartKey)) // incase user inputs uppercase letters instead of lower case
     {
     case 'y':
         hardMode = false; // resets hardmode in case it was already in hardmode
         startGame();
         break;
-    case 'h':
+    case 'h': // hard mode logic activates during the next game iteration
         hardMode = true;
         startGame();
         break;
-    default:
+    default: // if 'n' or any other letter exit from the game
         exit(true);
         break;
     }
@@ -442,10 +464,11 @@ void displayInstructions()
          << "S - MOVE DOWN\n"
          << "D - MOVE RIGHT\n"
          <<"---------\n"
+         << "At death you have the option to switch to a mode ('h') where the snake dies if you touch the edges\n"
          << "X or Q - QUIT GAME\n"
          << "P - PAUSE GAME\n"
-         << "L - SPEED UP GAME\n"
-         << "; - SLOW DOWN GAME\n\n"
+         << "L - SPEED UP GAME (Press multiple times)\n"
+         << "; - SLOW DOWN GAME (Press multiple times)\n\n"
          << "Description:\n"
          << "This is a game called Snake, when you eat fruits that look like --> 'F' your snake grows longer.\n"
          << "Try to eat as much as you can and grow as big as possible without touching your own tail!\n"
@@ -454,7 +477,7 @@ void displayInstructions()
 int main()
 {
     displayInstructions();
-    pauseGame();
+    pauseGame(); // stops game before
     startGame();
 
     return 0;

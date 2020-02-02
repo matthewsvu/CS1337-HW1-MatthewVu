@@ -437,7 +437,7 @@ void startGame()
 void restartGame()
 {
     char restartKey; // when user is prompted for y, h, or n
-    cout << "Do you want to restart?\n\nType 'y' for YES\nType 'h' for restarting in HARDMODE\nType 'n' or any other key for NO\nPress ENTER to submit the input" << endl;
+    cout << "Do you want to restart?\n\nType 'y' for YES to restart in NORMAL mode\nType 'h' for restarting in HARD mode\nType 'n' or any other key for ENDING the game\nPress ENTER to submit the input" << endl;
     cin >> restartKey;
     switch(tolower(restartKey)) // incase user inputs uppercase letters instead of lower case
     {

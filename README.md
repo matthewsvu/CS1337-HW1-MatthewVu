@@ -3,4 +3,4 @@
  
  Launch it from the exe file.
  
- You will receive instructions on how to play the game and rules, then can start playing.
+ You will receive instructions on how to play the game and its rules, then you can start playing.
